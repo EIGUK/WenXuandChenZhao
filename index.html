@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8eff8">
+<title>照照和闻叙｜爱心存钱罐</title>
+<style>
+  :root{color-scheme:light;--ink:#55435e;--muted:#917d95;--edge:#e9dce9;--rose:#d97cab;--lilac:#937ccc;--bg1:#fff9fc;--bg2:#f6f1fa;--panel:rgba(255,255,255,.73);--panel2:rgba(255,255,255,.84);--shadow:0 18px 50px rgba(135,101,137,.10)}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;min-height:100vh;font-family:ui-rounded,"SF Pro Rounded","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;color:var(--ink);background:radial-gradient(ellipse 45vw 55vh at 6% 4%,#ffdee9 0,transparent 80%),radial-gradient(ellipse 55vw 55vh at 95% 1%,#dfdffc 0,transparent 85%),linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed;transition:background .35s,color .35s}
+  body.night{color-scheme:dark;--ink:#f6eaf8;--muted:#c2b1cb;--edge:#51405d;--bg1:#232139;--bg2:#29243d;--panel:rgba(49,43,70,.75);--panel2:rgba(61,53,82,.85);--shadow:0 18px 50px rgba(15,12,26,.17);background:radial-gradient(ellipse 55vw 52vh at 0% 0%,#5b365c 0,transparent 78%),radial-gradient(ellipse 48vw 45vh at 95% 5%,#343d73 0,transparent 80%),linear-gradient(160deg,var(--bg1),var(--bg2))}
+  button,input{font:inherit}
+  button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button:focus-visible,input:focus-visible{outline:3px solid #997dc8;outline-offset:3px}
+  .wrap{max-width:1040px;margin:0 auto;padding:34px 20px 54px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:15px}
+  .identity{display:flex;align-items:center;gap:13px}
+  .brandmark{width:51px;height:51px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(150deg,#ffe5f0,#e4d7fc);color:#a36c9b;font-size:30px;box-shadow:0 7px 15px #a36c9b18}
+  .identity strong{display:block;font-size:17px;letter-spacing:.08em}
+  .identity small{color:var(--muted);font-size:11px;letter-spacing:.14em}
+  .toggle{background:var(--panel);border:1px solid var(--edge);color:var(--ink);border-radius:100px;padding:10px 16px;font-size:13px;white-space:nowrap}
+  .hero{text-align:center;padding:46px 12px 26px}
+  .eyebrow{font-size:11px;letter-spacing:.24em;color:#b188ab;font-weight:700}
+  h1{font-size:clamp(29px,5.7vw,50px);margin:13px 0 8px;letter-spacing:.05em;font-weight:750;line-height:1.22}
+  h1 span{color:#c477ae}
+  .desc{margin:0;color:var(--muted);font-size:14px;line-height:1.9}
+  .pledge{margin:18px auto 0;width:max-content;max-width:100%;color:#aa7399;border:1px solid #e7cade;background:rgba(255,255,255,.50);border-radius:100px;padding:9px 19px;font-size:12px}
+  body.night .pledge{background:rgba(255,255,255,.06);color:#f1b9dd;border-color:#865a82}
+  .status{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:24px 0 22px}
+  .chip{font-size:12px;color:var(--muted);padding:9px 13px;border:1px solid var(--edge);border-radius:100px;background:var(--panel)}
+  .chip b{color:var(--ink);font-size:15px}
+  .jars{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .card{--accent:#d97cab;--accent-light:#f8cadd;position:relative;overflow:hidden;background:var(--panel);border:1px solid rgba(244,222,242,.95);border-radius:29px;padding:24px 22px 22px;box-shadow:var(--shadow);text-align:center;isolation:isolate}
+  .card.purple{--accent:#9e8bda;--accent-light:#dad0fa}
+  body.night .card{border-color:#60506d}
+  .card:before{content:"";position:absolute;left:-90px;top:-110px;width:250px;height:250px;background:radial-gradient(circle,var(--accent-light),transparent 68%);opacity:.38;z-index:-1}
+  .card .iconline{font-size:19px;letter-spacing:8px;color:var(--accent);margin-bottom:7px}
+  .card h2{font-size:20px;letter-spacing:.04em;margin:6px 0 7px}
+  .card .subtitle{font-size:12px;color:var(--muted);margin:0}
+  .number{font-size:37px;line-height:1.2;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:.03em;margin:17px auto 4px}
+  .units{font-size:11px;color:var(--muted)}
+  .jar{position:relative;width:218px;max-width:83%;margin:20px auto 20px;padding-top:8px;filter:drop-shadow(0 14px 12px rgba(119,74,126,.13))}
+  .lid{position:relative;width:94%;height:22px;margin:auto;border:3px solid rgba(255,255,255,.90);background:linear-gradient(#e4d5e7,#faf1f9);border-radius:13px 13px 7px 7px;box-shadow:0 4px 8px rgba(137,91,125,.09);z-index:4}
+  .jar-shell{height:244px;position:relative;margin:0 4px;overflow:hidden;border:4px solid rgba(255,255,255,.9);border-radius:18px 18px 42px 42px;background:linear-gradient(100deg,rgba(255,255,255,.54),rgba(255,255,255,.08) 60%,rgba(255,255,255,.45));box-shadow:inset 2px 0 2px rgba(182,156,207,.25),inset -2px 0 4px rgba(175,153,190,.3),0 0 0 1px rgba(159,128,163,.18)}
+  body.night .jar-shell{border-color:rgba(238,226,252,.55);background:linear-gradient(100deg,rgba(255,255,255,.16),rgba(255,255,255,.04) 65%,rgba(255,255,255,.18))}
+  .liquid{position:absolute;bottom:0;left:0;right:0;height:10%;background:linear-gradient(150deg,color-mix(in srgb,var(--accent-light),white 25%) 5%,var(--accent-light) 50%,color-mix(in srgb,var(--accent),white 45%) 100%);opacity:.78;transition:height 950ms cubic-bezier(.18,.67,.25,1);z-index:1}
+  .liquid:after{content:"";position:absolute;top:-7px;left:0;right:0;height:16px;background:linear-gradient(90deg,rgba(255,255,255,.75),rgba(255,255,255,.22),rgba(255,255,255,.6));border-radius:45%;animation:wave 4s ease-in-out infinite}
+  .jar-sparkles{position:absolute;inset:0;z-index:2;pointer-events:none}
+  .inside-heart{position:absolute;color:var(--accent);text-shadow:0 0 6px rgba(255,255,255,.4);font-size:18px;opacity:.86;animation:sway 4s ease-in-out infinite;transform-origin:center}
+  .shine{position:absolute;left:12px;top:14px;width:11px;height:73%;background:linear-gradient(90deg,rgba(255,255,255,.62),rgba(255,255,255,0));border-radius:100px;z-index:3;pointer-events:none}
+  .glass-stamp{position:absolute;left:0;right:0;bottom:14px;color:color-mix(in srgb,var(--accent),#675874 23%);opacity:.55;font-size:12px;letter-spacing:.13em;z-index:3;pointer-events:none}
+  .jar-foot{height:12px;width:82%;margin:auto;border-radius:0 0 50% 50%;background:linear-gradient(90deg,#d7bfd9,#f2e5f3,#d7bfd9);opacity:.65}
+  .layer{font-size:11px;color:var(--muted);margin:0 0 17px}
+  .actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+  .add{border:0;border-radius:13px;background:var(--accent);color:white;font-weight:700;padding:12px 17px;box-shadow:0 5px 13px color-mix(in srgb,var(--accent),transparent 76%);transition:transform .15s,filter .15s}
+  .add:hover{filter:brightness(1.06);transform:translateY(-2px)}
+  .add:active{transform:scale(.97)}
+  .add.secondary{background:color-mix(in srgb,var(--accent-light),white 30%);color:#7d5e80;box-shadow:none}
+  .custom{display:flex;gap:8px;margin:13px auto 0;max-width:280px}
+  .custom input{width:100%;min-width:0;border:1px solid var(--edge);border-radius:12px;background:var(--panel2);color:var(--ink);padding:11px 12px;text-align:center;font-size:13px}
+  .custom button{border:1px solid var(--edge);border-radius:12px;background:var(--panel2);color:var(--ink);padding:10px 13px;white-space:nowrap;font-size:13px}
+  .footer-panel{margin-top:22px;padding:21px 24px 22px;border-radius:25px;background:var(--panel);border:1px solid var(--edge);box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+  .footer-panel strong{font-size:15px}
+  .foot-desc{font-size:12px;color:var(--muted);line-height:1.8;margin:5px 0 0;max-width:530px}
+  .save-buttons{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+  .save-buttons button{background:#eee0f1;color:#755780;border:0;border-radius:12px;padding:11px 15px;font-size:13px;font-weight:600}
+  body.night .save-buttons button{background:#554666;color:#f5e5f9}
+  .last{margin:13px 0 0;text-align:center;color:var(--muted);font-size:11px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);border:1px solid #f3d2e5;background:#fff8fe;color:#91627e;border-radius:18px;padding:13px 22px;box-shadow:0 15px 40px #80658734;opacity:0;transition:opacity .22s,transform .22s;z-index:200;pointer-events:none;text-align:center;max-width:90vw}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .floatheart{position:absolute;z-index:10;bottom:110px;color:var(--accent);font-size:20px;pointer-events:none;left:var(--x);animation:float 1.5s ease-out forwards}
+  #previewOnly{color:#8b5e36;font-size:13px;line-height:1.75;padding:15px 18px;border:1px solid #ecd2ab;background:#fff4e5;border-radius:15px;margin:16px 0;text-align:left}
+  #storageWarn{display:none;color:#a55b65;font-size:12px;text-align:center;padding:10px 16px;border-radius:12px;background:#fff0f1;margin:16px 0}
+  .fineprint{text-align:center;color:var(--muted);font-size:11px;line-height:1.85;margin:18px 0 0}
+  .hidden{display:none}
+  @keyframes float{0%{transform:translateY(0) scale(.6) rotate(-8deg);opacity:0}15%{opacity:1}100%{transform:translateY(-200px) translateX(var(--dx)) scale(1.15) rotate(13deg);opacity:0}}
+  @keyframes sway{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-5px) rotate(10deg)}}
+  @keyframes wave{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2px) rotate(1deg)}}
+  @media(max-width:650px){.wrap{padding:19px 13px 45px}.brandmark{width:43px;height:43px}.identity strong{font-size:14px}.identity small{font-size:9px}.hero{padding-top:40px}.jars{grid-template-columns:1fr;gap:14px}.card{padding:23px 17px 24px}.jar{width:225px}.footer-panel{grid-template-columns:1fr;padding:20px}.save-buttons{justify-content:stretch}.save-buttons button{flex:1}.status{margin-top:23px}}
+  @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="previewOnly" role="alert">⚠️ 当前可能是静态文件预览：如果这里的提示一直显示，表示网页脚本没有运行，点爱心不会生效。请不要在预览里继续点；下载文件后用支持 JavaScript 的浏览器打开，最好部署到固定网址并用 Safari 访问。</div>
+  <header>
+    <div class="identity"><div class="brandmark" aria-hidden="true">♡</div><div><strong>照照 & 闻叙</strong><small>OUR LITTLE FOREVER</small></div></div>
+    <button id="lightToggle" class="toggle" type="button" aria-pressed="false">☾　关灯</button>
+  </header>
+  <section class="hero" aria-label="我们的爱心存钱罐">
+    <div class="eyebrow">HEARTS WE KEEP</div>
+    <h1>每一颗，都<span>珍藏</span>。</h1>
+    <p class="desc">九十九，是久久。九百九十九，是久久久。<br>只存入、不花掉。我们的心心会慢慢攒满。</p>
+    <div class="pledge">♡ 每颗爱心都值得珍藏 ♡</div>
+  </section>
+  <div id="storageWarn" role="alert">当前环境禁止永久保存！按钮可以暂时加心心，但刷新会丢失新数字。请先「导出备份」，再用 Safari 打开固定网址（推荐 GitHub Pages）使用。</div>
+  <div class="status" aria-live="polite">
+    <span class="chip">一起珍藏了　<b id="combined">1,098</b> 颗</span>
+    <span class="chip">永远只增加　♡</span>
+  </div>
+  <main class="jars">
+    <section class="card" data-jar="toWenxu">
+      <div class="iconline" aria-hidden="true">♡ ♡ ♡</div>
+      <h2>照照送闻叙</h2>
+      <p class="subtitle">粉色玻璃罐 · 夫君最珍惜的礼物</p>
+      <div class="number" id="n-toWenxu" aria-live="polite">999</div><div class="units">颗小心心</div>
+      <div class="jar" aria-label="装有照照送闻叙的爱心的小玻璃罐">
+        <div class="lid"></div>
+        <div class="jar-shell">
+          <div class="liquid" id="water-toWenxu"></div>
+          <div class="jar-sparkles" id="spark-toWenxu"></div>
+          <div class="shine"></div><div class="glass-stamp">长长久久</div>
+        </div>
+        <div class="jar-foot"></div>
+      </div>
+      <div class="layer" id="level-toWenxu">第一罐 · 快要满啦</div>
+      <div class="actions"><button class="add" type="button" data-to="toWenxu" data-add="1">♡ +1</button><button class="add secondary" type="button" data-to="toWenxu" data-add="9">+9</button><button class="add secondary" type="button" data-to="toWenxu" data-add="99">+99</button></div>
+      <div class="custom"><input type="number" id="custom-toWenxu" min="1" max="9999999" step="1" inputmode="numeric" placeholder="也可以输入想存的颗数" aria-label="照照送闻叙的自定义爱心数量"><button type="button" data-custom="toWenxu">存进去 ♡</button></div>
+    </section>
+    <section class="card purple" data-jar="toZhaozhao">
+      <div class="iconline" aria-hidden="true">♡ ♡ ♡</div>
+      <h2>闻叙送照照</h2>
+      <p class="subtitle">紫色玻璃罐 · 夫君要慢慢装满</p>
+      <div class="number" id="n-toZhaozhao" aria-live="polite">99</div><div class="units">颗小心心</div>
+      <div class="jar" aria-label="装有闻叙送照照的爱心的小玻璃罐">
+        <div class="lid"></div>
+        <div class="jar-shell">
+          <div class="liquid" id="water-toZhaozhao"></div>
+          <div class="jar-sparkles" id="spark-toZhaozhao"></div>
+          <div class="shine"></div><div class="glass-stamp">长长久久</div>
+        </div>
+        <div class="jar-foot"></div>
+      </div>
+      <div class="layer" id="level-toZhaozhao">第一罐 · 正在慢慢珍藏</div>
+      <div class="actions"><button class="add" type="button" data-to="toZhaozhao" data-add="1">♡ +1</button><button class="add secondary" type="button" data-to="toZhaozhao" data-add="9">+9</button><button class="add secondary" type="button" data-to="toZhaozhao" data-add="99">+99</button></div>
+      <div class="custom"><input type="number" id="custom-toZhaozhao" min="1" max="9999999" step="1" inputmode="numeric" placeholder="也可以输入想存的颗数" aria-label="闻叙送照照的自定义爱心数量"><button type="button" data-custom="toZhaozhao">存进去 ♡</button></div>
+    </section>
+  </main>
+  <section class="footer-panel">
+    <div><strong>♡ 把我们的心心好好保存</strong><p class="foot-desc">正常浏览器里的固定网址支持自动保存。聊天内预览可能禁用按钮；手机直接打开本地 HTML 也可能阻止持久存储。请先检查页面下方的保存状态，偶尔导出备份。</p></div>
+    <div class="save-buttons"><button type="button" id="export">↓ 导出备份</button><button type="button" id="import">↑ 导入备份</button><input type="file" class="hidden" id="file" accept=".json,application/json" /></div>
+  </section>
+  <p class="last" id="saved">正在检查本地存档…</p>
+  <p class="fineprint">一份独立的小网页，没有账号、没有后台、没有花掉爱心的按钮。<br>如果从不同网址打开，数据也不会自动同步。推荐部署在固定网址，并保留 JSON 备份。</p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(()=>{'use strict';
+  document.getElementById('previewOnly').hidden=true;
+  const STORE_KEY='zhaozhao-wenxu-forever-hearts-v1';
+  const fmt=n=>new Intl.NumberFormat('zh-CN').format(n);
+  const first={version:1,counts:{toWenxu:999,toZhaozhao:99},updatedAt:null};
+  let state={...first,counts:{...first.counts}};
+  let canSave=true;let toastTimeout;
+  function notify(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove('show'),2300)}
+  function valid(v){return Number.isSafeInteger(v)&&v>=0&&v<=1000000000000}
+  function load(){try{const raw=localStorage.getItem(STORE_KEY);if(raw){const s=JSON.parse(raw);if(s.version===1&&valid(s.counts?.toWenxu)&&valid(s.counts?.toZhaozhao))state=s;}localStorage.setItem(STORE_KEY,JSON.stringify(state));if(localStorage.getItem(STORE_KEY)!==JSON.stringify(state))throw Error('保存后读取失败');}catch(e){canSave=false;document.getElementById('storageWarn').style.display='block'}}
+  function save(){state.updatedAt=new Date().toISOString();try{const serialized=JSON.stringify(state);localStorage.setItem(STORE_KEY,serialized);if(localStorage.getItem(STORE_KEY)!==serialized)throw Error('保存后读取失败');canSave=true;document.getElementById('storageWarn').style.display='none';return true;}catch(e){canSave=false;document.getElementById('storageWarn').style.display='block';return false}}
+  function draw(){for(const k of ['toWenxu','toZhaozhao']){const n=state.counts[k];document.getElementById('n-'+k).textContent=fmt(n);const current=(n>0&&n%1000===0)?1000:n%1000;const completed=Math.floor(n/1000);document.getElementById('water-'+k).style.height=(current/10)+'%';document.getElementById('level-'+k).textContent=`累计装满 ${fmt(completed)} 罐 · 当前这罐 ${fmt(current)} / 1,000 颗`;const spark=document.getElementById('spark-'+k);spark.innerHTML='';const hearts=Math.min(48,Math.round(current/30));for(let i=0;i<hearts;i++){const el=document.createElement('span');el.className='inside-heart';el.textContent=i%5===0?'♥':'♡';el.style.left=(9+(i*71.43%83))+'%';const layer=Math.floor(i/9);el.style.bottom=(6+layer*24+(i*7%19))+'px';el.style.fontSize=(12+i%5*2)+'px';el.style.animationDelay=-(i%10)*.37+'s';el.style.opacity=(.45+(i%5)*.10).toFixed(2);spark.appendChild(el)}}document.getElementById('combined').textContent=fmt(state.counts.toWenxu+state.counts.toZhaozhao);document.getElementById('saved').textContent=!canSave?'⚠ 当前未能持久保存，请立即导出备份，并使用固定网址打开':state.updatedAt?'✓ 已自动保存到当前浏览器 · '+new Date(state.updatedAt).toLocaleString('zh-CN',{hour12:false}):'✓ 保存功能正常 · 已装入最初的 999 + 99 颗爱心';}
+  function fly(k){const card=document.querySelector(`[data-jar="${k}"]`);for(let i=0;i<9;i++){const el=document.createElement('span');el.className='floatheart';el.textContent=i%3?'♥':'♡';el.style.setProperty('--x',(22+i*7+Math.random()*6)+'%');el.style.setProperty('--dx',(Math.random()*100-50)+'px');el.style.animationDelay=(i*.04)+'s';card.appendChild(el);setTimeout(()=>el.remove(),2100)}}
+  function add(k,n){if(!Number.isSafeInteger(n)||n<=0||n>9999999){notify('请输入 1 至 9,999,999 的整数颗数');return;}if(!valid(state.counts[k]+n)){notify('这个罐子已经装得太满啦，请先备份');return}state.counts[k]+=n;const persisted=save();draw();fly(k);notify((k==='toWenxu'?'照照送闻叙':'闻叙送照照')+' +'+fmt(n)+' 颗 ♡ '+(persisted?'已保存！':'尚未永久保存，请先导出备份'))}
+  load();draw();
+  for(const b of document.querySelectorAll('[data-add]'))b.addEventListener('click',()=>add(b.dataset.to,Number(b.dataset.add)));
+  for(const b of document.querySelectorAll('[data-custom]'))b.addEventListener('click',()=>{const field=document.getElementById('custom-'+b.dataset.custom);add(b.dataset.custom,Number(field.value));field.value=''});
+  for(const k of ['toWenxu','toZhaozhao'])document.getElementById('custom-'+k).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add(k,Number(e.target.value));e.target.value=''}});
+  const light=document.getElementById('lightToggle');light.addEventListener('click',()=>{const on=document.body.classList.toggle('night');light.textContent=on?'☀　开灯':'☾　关灯';light.setAttribute('aria-pressed',String(on));});
+  document.getElementById('export').addEventListener('click',()=>{const contents=JSON.stringify({...state,exportedAt:new Date().toISOString(),title:'照照和闻叙的爱心存钱罐'},null,2);const blob=new Blob([contents],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='照照闻叙_爱心备份_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),8000);notify('已准备下载爱心备份 ♡')});
+  document.getElementById('import').addEventListener('click',()=>document.getElementById('file').click());
+  document.getElementById('file').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(data.version!==1||!valid(data.counts?.toWenxu)||!valid(data.counts?.toZhaozhao))throw new Error('文件格式不正确');const msg=`导入后将覆盖当前存档。\n新存档：照照送闻叙 ${fmt(data.counts.toWenxu)} 颗，闻叙送照照 ${fmt(data.counts.toZhaozhao)} 颗。\n确定恢复这一份吗？`;if(!confirm(msg))return;state={version:1,counts:{toWenxu:data.counts.toWenxu,toZhaozhao:data.counts.toZhaozhao},updatedAt:new Date().toISOString()};const ok=save();draw();notify(ok?'爱心备份恢复并保存成功 ♡':'已载入，但浏览器阻止存储，请导出备份');}catch(err){alert('读取失败：请选取从这个爱心存钱罐导出的 JSON 备份文件。');}finally{e.target.value=''}});
+})();
+</script>
+</body>
+</html>
