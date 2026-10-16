@@ -125,13 +125,32 @@
   body.night .connected-glass{border-color:rgba(248,236,255,.48);background:linear-gradient(100deg,rgba(255,255,255,.14),rgba(255,255,255,.04),rgba(255,255,255,.16))}
   .glass-fluid{position:absolute;inset:auto 0 0;height:0%;display:grid;grid-template-columns:1fr 1fr;
     transition:height 1200ms cubic-bezier(.2,.66,.3,1);z-index:1;overflow:hidden}
-  .fluid-half{min-width:0;height:100%;position:relative;transition:background 650ms ease}
-  .fluid-pink{background:linear-gradient(to top,var(--violet-water) 0 var(--left-purple,0%),
-    var(--rose-water) var(--left-purple,0%) 100%)}
-  .fluid-purple{background:linear-gradient(to top,var(--rose-water) 0 var(--right-pink,0%),
-    var(--violet-water) var(--right-pink,0%) 100%)}
-  .fluid-half:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,
-    rgba(255,255,255,.18),rgba(255,255,255,.03) 60%,rgba(255,255,255,.15));pointer-events:none}
+  /* 一边是完整的本色，溢出的心意以柔软的曲线从底部伸进另一边。
+     SVG 的曲线会按份额计算；所有颜色只在本色的深浅之间变化，避免粉紫泥状混色。 */
+  .fluid-half{min-width:0;height:100%;position:relative;overflow:hidden}
+  .fluid-pink{background:linear-gradient(112deg,#f9d9e8 0%,#f1bcd6 54%,#eeb0cf 100%)}
+  .fluid-purple{background:linear-gradient(112deg,#ded4fa 0%,#c7b7ee 58%,#b6a6e7 100%)}
+  .fluid-half:before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:
+      radial-gradient(ellipse 55% 25% at 15% 22%,rgba(255,255,255,.23),transparent 90%),
+      radial-gradient(ellipse 44% 30% at 85% 72%,rgba(255,255,255,.13),transparent 95%),
+      linear-gradient(90deg,rgba(255,255,255,.24),transparent 24%,rgba(255,255,255,.06) 77%,rgba(255,255,255,.21))}
+  .flow-art{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:2;overflow:hidden;pointer-events:none}
+  .flow-region{opacity:.99}
+  .flow-edge{fill:none;stroke:rgba(255,255,255,.41);stroke-width:.75;stroke-linecap:round;
+    vector-effect:non-scaling-stroke;filter:blur(.3px)}
+  .flow-edge-soft{fill:none;stroke:rgba(255,255,255,.17);stroke-width:3.3;
+    vector-effect:non-scaling-stroke;filter:blur(2.2px)}
+  .fluid-current{position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:repeating-linear-gradient(112deg,transparent 0%,rgba(255,255,255,.055) 11%,
+    transparent 23%,transparent 38%);background-size:220% 100%;
+    animation:current-drift 13s ease-in-out infinite alternate;mix-blend-mode:screen;opacity:.42}
+  .flow-channel-shimmer{position:absolute;bottom:4px;left:calc(50% - 22px);width:44px;height:16px;
+    z-index:4;pointer-events:none;border-radius:50%;
+    background:radial-gradient(ellipse,rgba(255,255,255,.36),rgba(255,255,255,0) 73%);
+    animation:channel-breathe 5s ease-in-out infinite}
+  @keyframes current-drift{from{background-position:0% 0}to{background-position:100% 0}}
+  @keyframes channel-breathe{0%,100%{opacity:.38;transform:scaleX(.92)}50%{opacity:.8;transform:scaleX(1.16)}}
   .fluid-surface{position:absolute;left:0;right:0;top:-2px;height:12px;border-radius:50%;
     background:linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.18),rgba(255,255,255,.68));
     box-shadow:0 3px 11px rgba(255,255,255,.37);animation:wave 5s ease-in-out infinite}
@@ -175,7 +194,7 @@
     .glass-divider{bottom:23px}
     .glass-text{bottom:22px}
   }
-  @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  @media(prefers-reduced-motion:reduce){.fluid-current,.flow-channel-shimmer{animation:none!important}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -209,8 +228,30 @@
     </div>
     <div class="connected-glass" role="img" aria-label="一个完整的玻璃罐，中间一片玻璃隔板，底部相通，两边液面一样高。多出的颜色从隔板下方流入另一侧。">
       <div class="glass-fluid" id="shared-fluid">
-        <div class="fluid-half fluid-pink" id="fluid-left"></div>
-        <div class="fluid-half fluid-purple" id="fluid-right"></div>
+        <div class="fluid-half fluid-pink" id="fluid-left">
+          <svg class="flow-art" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs><linearGradient id="incoming-violet" x1="0" y1="1" x2=".6" y2="0">
+              <stop offset="0%" stop-color="#b9a7e8"/><stop offset="55%" stop-color="#c6b4ef"/>
+              <stop offset="100%" stop-color="#d3c5f5"/>
+            </linearGradient></defs>
+            <path class="flow-region" id="violet-in-pink" fill="url(#incoming-violet)"/>
+            <path class="flow-edge-soft" id="violet-soft-edge"/>
+            <path class="flow-edge" id="violet-edge"/>
+          </svg>
+          <div class="fluid-current"></div>
+        </div>
+        <div class="fluid-half fluid-purple" id="fluid-right">
+          <svg class="flow-art" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs><linearGradient id="incoming-rose" x1="0" y1="1" x2=".6" y2="0">
+              <stop offset="0%" stop-color="#e9aace"/><stop offset="55%" stop-color="#f0b8d6"/>
+              <stop offset="100%" stop-color="#f7d0e3"/>
+            </linearGradient></defs>
+            <path class="flow-region" id="rose-in-violet" fill="url(#incoming-rose)"/>
+            <path class="flow-edge-soft" id="rose-soft-edge"/>
+            <path class="flow-edge" id="rose-edge"/>
+          </svg>
+          <div class="fluid-current"></div>
+        </div>
         <div class="fluid-surface"></div>
       </div>
       <div class="chamber chamber-pink" data-jar="toWenxu">
@@ -221,6 +262,7 @@
       </div>
       <div class="glass-divider" aria-hidden="true"></div>
       <div class="glass-channel" aria-hidden="true"></div>
+      <div class="flow-channel-shimmer" aria-hidden="true"></div>
       <div class="glass-shine" aria-hidden="true"></div>
       <div class="glass-text">心心相通 · 长长久久</div>
     </div>
@@ -303,6 +345,25 @@
       side:purple>pink?'purple':pink>purple?'pink':'even'
     };
   }
+  // 为每一层溢出液绘制缓缓起伏的自然轮廓。
+  // 体积始终按心心的份额计算；曲线只改变边缘，不改变两个颜色的总占比。
+  function paintFlow(tone,percent){
+    const area=document.getElementById(tone==='violet'?'violet-in-pink':'rose-in-violet');
+    const edge=document.getElementById(tone==='violet'?'violet-edge':'rose-edge');
+    const soft=document.getElementById(tone==='violet'?'violet-soft-edge':'rose-soft-edge');
+    if(percent<=0.000001){area.setAttribute('d','');edge.setAttribute('d','');soft.setAttribute('d','');return;}
+    const y=100-percent;
+    // 平均高度保持正确，左右起伏相互抵消；含量很小时，波幅也随之减小。
+    const amp=Math.min(3.7,percent*.24,(100-percent)*.30);
+    const sign=tone==='violet'?1:-1;
+    const v=x=>Math.max(0,Math.min(100,x)).toFixed(3);
+    const outline='M 0 '+v(y+sign*amp*.25)+
+      ' C 13 '+v(y-sign*amp*.85)+', 24 '+v(y-sign*amp*.9)+', 36 '+v(y-sign*amp*.18)+
+      ' C 46 '+v(y+sign*amp*.45)+', 58 '+v(y+sign*amp*.83)+', 70 '+v(y+sign*amp*.17)+
+      ' C 82 '+v(y-sign*amp*.50)+', 92 '+v(y-sign*amp*.60)+', 100 '+v(y+sign*amp*.25);
+    area.setAttribute('d',outline+' L 100 100 L 0 100 Z');
+    edge.setAttribute('d',outline);soft.setAttribute('d',outline);
+  }
   function draw(){
     const pink=state.counts.toWenxu,purple=state.counts.toZhaozhao;
     const mix=sharedMix(pink,purple);
@@ -310,8 +371,8 @@
     document.getElementById('n-toZhaozhao').textContent=fmt(purple);
     const fluid=document.getElementById('shared-fluid');
     fluid.style.height=mix.level.toFixed(3)+'%';
-    document.getElementById('fluid-left').style.setProperty('--left-purple',mix.leftPurple.toFixed(4)+'%');
-    document.getElementById('fluid-right').style.setProperty('--right-pink',mix.rightPink.toFixed(4)+'%');
+    paintFlow('violet',mix.leftPurple);
+    paintFlow('rose',mix.rightPink);
     const msg=mix.side==='purple'
       ?'紫色多出的 '+fmt(mix.over)+' 颗，从底部流向粉色这边 ♡'
       :mix.side==='pink'?'粉色多出的 '+fmt(mix.over)+' 颗，从底部流向紫色这边 ♡'
