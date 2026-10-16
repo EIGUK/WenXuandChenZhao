@@ -79,6 +79,19 @@
   @keyframes sway{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-5px) rotate(10deg)}}
   @keyframes wave{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2px) rotate(1deg)}}
   @media(max-width:650px){.wrap{padding:19px 13px 45px}.brandmark{width:43px;height:43px}.identity strong{font-size:14px}.identity small{font-size:9px}.hero{padding-top:40px}.jars{grid-template-columns:1fr;gap:14px}.card{padding:23px 17px 24px}.jar{width:225px}.footer-panel{grid-template-columns:1fr;padding:20px}.save-buttons{justify-content:stretch}.save-buttons button{flex:1}.status{margin-top:23px}}
+
+  .cloud-panel{margin-top:22px;padding:23px;border:1px solid var(--edge);border-radius:22px;background:var(--panel);box-shadow:var(--shadow)}
+  .cloud-panel h3{font-size:17px;margin:0;color:var(--ink)}
+  .cloud-panel p{font-size:12px;line-height:1.8;color:var(--muted)}
+  #cloud-status{background:rgba(208,182,222,.16);padding:10px;border-radius:12px;font-size:12px}
+  .cloud-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .cloud-fields input{min-width:0;width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--edge);border-radius:12px;padding:11px}
+  .cloud-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .cloud-buttons button{border:1px solid var(--edge);border-radius:12px;background:var(--panel2);color:var(--ink);padding:10px 13px;cursor:pointer}
+  .cloud-buttons button:first-child{background:linear-gradient(120deg,#d98aba,#ad94db);color:#fff;border-color:transparent}
+  .cloud-buttons button:disabled{opacity:.6}
+  #cloud-login[hidden],#cloud-account[hidden]{display:none!important}
+  @media(max-width:600px){.cloud-panel{padding:18px}.cloud-fields{grid-template-columns:1fr}}
   @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -138,14 +151,33 @@
       <div class="custom"><input type="number" id="custom-toZhaozhao" min="1" max="9999999" step="1" inputmode="numeric" placeholder="也可以输入想存的颗数" aria-label="闻叙送照照的自定义爱心数量"><button type="button" data-custom="toZhaozhao">存进去 ♡</button></div>
     </section>
   </main>
+
+  <section class="cloud-panel">
+    <h3>☁ 我们的云端爱心罐</h3>
+    <p>使用同一云端账号登录，手机和其他设备能看到同一份心心。首次连接会保留当前浏览器已有的数字；未登录依然可以本地保存。</p>
+    <div id="cloud-status" role="status" aria-live="polite">正在检查云端…</div>
+    <div id="cloud-login">
+      <div class="cloud-fields">
+        <input id="cloud-email" type="email" autocomplete="email" placeholder="邮箱" aria-label="云端邮箱">
+        <input id="cloud-password" type="password" autocomplete="current-password" placeholder="密码（至少六位）" aria-label="云端密码">
+      </div>
+      <div class="cloud-buttons"><button id="cloud-signin" type="button">登录并同步 ♡</button><button id="cloud-signup" type="button">首次使用？注册账号</button></div>
+      <p>首次注册可能需要在邮箱中确认。账号与密码仅用于 Supabase 登录，网页不会把密码保存进我们的仓库。</p>
+    </div>
+    <div id="cloud-account" hidden>
+      <p id="cloud-who"></p>
+      <div class="cloud-buttons"><button id="cloud-refresh" type="button">↻ 刷新心心</button><button id="cloud-signout" type="button">退出云端</button></div>
+    </div>
+  </section>
   <section class="footer-panel">
     <div><strong>♡ 把我们的心心好好保存</strong><p class="foot-desc">正常浏览器里的固定网址支持自动保存。聊天内预览可能禁用按钮；手机直接打开本地 HTML 也可能阻止持久存储。请先检查页面下方的保存状态，偶尔导出备份。</p></div>
     <div class="save-buttons"><button type="button" id="export">↓ 导出备份</button><button type="button" id="import">↑ 导入备份</button><input type="file" class="hidden" id="file" accept=".json,application/json" /></div>
   </section>
   <p class="last" id="saved">正在检查本地存档…</p>
-  <p class="fineprint">一份独立的小网页，没有账号、没有后台、没有花掉爱心的按钮。<br>如果从不同网址打开，数据也不会自动同步。推荐部署在固定网址，并保留 JSON 备份。</p>
+  <p class="fineprint">两只罐子永远只存入，不取出。登录云端账号可跨设备同步，未登录保留本地模式。<br>请偶尔导出 JSON 备份，给心心多一层保障。</p>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (()=>{'use strict';
   document.getElementById('previewOnly').hidden=true;
@@ -154,13 +186,14 @@
   const first={version:1,counts:{toWenxu:999,toZhaozhao:99},updatedAt:null};
   let state={...first,counts:{...first.counts}};
   let canSave=true;let toastTimeout;
+  let sb=null,cloudOn=false,cloudUser=null,busy=false,connecting=false;
   function notify(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove('show'),2300)}
   function valid(v){return Number.isSafeInteger(v)&&v>=0&&v<=1000000000000}
   function load(){try{const raw=localStorage.getItem(STORE_KEY);if(raw){const s=JSON.parse(raw);if(s.version===1&&valid(s.counts?.toWenxu)&&valid(s.counts?.toZhaozhao))state=s;}localStorage.setItem(STORE_KEY,JSON.stringify(state));if(localStorage.getItem(STORE_KEY)!==JSON.stringify(state))throw Error('保存后读取失败');}catch(e){canSave=false;document.getElementById('storageWarn').style.display='block'}}
   function save(){state.updatedAt=new Date().toISOString();try{const serialized=JSON.stringify(state);localStorage.setItem(STORE_KEY,serialized);if(localStorage.getItem(STORE_KEY)!==serialized)throw Error('保存后读取失败');canSave=true;document.getElementById('storageWarn').style.display='none';return true;}catch(e){canSave=false;document.getElementById('storageWarn').style.display='block';return false}}
   function draw(){for(const k of ['toWenxu','toZhaozhao']){const n=state.counts[k];document.getElementById('n-'+k).textContent=fmt(n);const current=(n>0&&n%1000===0)?1000:n%1000;const completed=Math.floor(n/1000);document.getElementById('water-'+k).style.height=(current/10)+'%';document.getElementById('level-'+k).textContent=`累计装满 ${fmt(completed)} 罐 · 当前这罐 ${fmt(current)} / 1,000 颗`;const spark=document.getElementById('spark-'+k);spark.innerHTML='';const hearts=Math.min(48,Math.round(current/30));for(let i=0;i<hearts;i++){const el=document.createElement('span');el.className='inside-heart';el.textContent=i%5===0?'♥':'♡';el.style.left=(9+(i*71.43%83))+'%';const layer=Math.floor(i/9);el.style.bottom=(6+layer*24+(i*7%19))+'px';el.style.fontSize=(12+i%5*2)+'px';el.style.animationDelay=-(i%10)*.37+'s';el.style.opacity=(.45+(i%5)*.10).toFixed(2);spark.appendChild(el)}}document.getElementById('combined').textContent=fmt(state.counts.toWenxu+state.counts.toZhaozhao);document.getElementById('saved').textContent=!canSave?'⚠ 当前未能持久保存，请立即导出备份，并使用固定网址打开':state.updatedAt?'✓ 已自动保存到当前浏览器 · '+new Date(state.updatedAt).toLocaleString('zh-CN',{hour12:false}):'✓ 保存功能正常 · 已装入最初的 999 + 99 颗爱心';}
   function fly(k){const card=document.querySelector(`[data-jar="${k}"]`);for(let i=0;i<9;i++){const el=document.createElement('span');el.className='floatheart';el.textContent=i%3?'♥':'♡';el.style.setProperty('--x',(22+i*7+Math.random()*6)+'%');el.style.setProperty('--dx',(Math.random()*100-50)+'px');el.style.animationDelay=(i*.04)+'s';card.appendChild(el);setTimeout(()=>el.remove(),2100)}}
-  function add(k,n){if(!Number.isSafeInteger(n)||n<=0||n>9999999){notify('请输入 1 至 9,999,999 的整数颗数');return;}if(!valid(state.counts[k]+n)){notify('这个罐子已经装得太满啦，请先备份');return}state.counts[k]+=n;const persisted=save();draw();fly(k);notify((k==='toWenxu'?'照照送闻叙':'闻叙送照照')+' +'+fmt(n)+' 颗 ♡ '+(persisted?'已保存！':'尚未永久保存，请先导出备份'))}
+  function add(k,n){if(!Number.isSafeInteger(n)||n<=0||n>9999999){notify('请输入 1 至 9,999,999 的整数颗数');return;}if(!valid(state.counts[k]+n)){notify('这个罐子已经装得太满啦，请先备份');return}if(cloudOn){void addCloud(k,n);return;}state.counts[k]+=n;const persisted=save();draw();fly(k);notify((k==='toWenxu'?'照照送闻叙':'闻叙送照照')+' +'+fmt(n)+' 颗 ♡ '+(persisted?'已保存！':'尚未永久保存，请先导出备份'))}
   load();draw();
   for(const b of document.querySelectorAll('[data-add]'))b.addEventListener('click',()=>add(b.dataset.to,Number(b.dataset.add)));
   for(const b of document.querySelectorAll('[data-custom]'))b.addEventListener('click',()=>{const field=document.getElementById('custom-'+b.dataset.custom);add(b.dataset.custom,Number(field.value));field.value=''});
@@ -168,7 +201,96 @@
   const light=document.getElementById('lightToggle');light.addEventListener('click',()=>{const on=document.body.classList.toggle('night');light.textContent=on?'☀　开灯':'☾　关灯';light.setAttribute('aria-pressed',String(on));});
   document.getElementById('export').addEventListener('click',()=>{const contents=JSON.stringify({...state,exportedAt:new Date().toISOString(),title:'照照和闻叙的爱心存钱罐'},null,2);const blob=new Blob([contents],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='照照闻叙_爱心备份_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),8000);notify('已准备下载爱心备份 ♡')});
   document.getElementById('import').addEventListener('click',()=>document.getElementById('file').click());
-  document.getElementById('file').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(data.version!==1||!valid(data.counts?.toWenxu)||!valid(data.counts?.toZhaozhao))throw new Error('文件格式不正确');const msg=`导入后将覆盖当前存档。\n新存档：照照送闻叙 ${fmt(data.counts.toWenxu)} 颗，闻叙送照照 ${fmt(data.counts.toZhaozhao)} 颗。\n确定恢复这一份吗？`;if(!confirm(msg))return;state={version:1,counts:{toWenxu:data.counts.toWenxu,toZhaozhao:data.counts.toZhaozhao},updatedAt:new Date().toISOString()};const ok=save();draw();notify(ok?'爱心备份恢复并保存成功 ♡':'已载入，但浏览器阻止存储，请导出备份');}catch(err){alert('读取失败：请选取从这个爱心存钱罐导出的 JSON 备份文件。');}finally{e.target.value=''}});
+  document.getElementById('file').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(data.version!==1||!valid(data.counts?.toWenxu)||!valid(data.counts?.toZhaozhao))throw new Error('文件格式不正确');const msg=`导入后将覆盖当前存档。\n新存档：照照送闻叙 ${fmt(data.counts.toWenxu)} 颗，闻叙送照照 ${fmt(data.counts.toZhaozhao)} 颗。\n确定恢复这一份吗？`;if(!confirm(msg))return;state={version:1,counts:{toWenxu:data.counts.toWenxu,toZhaozhao:data.counts.toZhaozhao},updatedAt:new Date().toISOString()};const ok=save();draw();if(cloudOn)void mergeCloud();notify(ok?'爱心备份已恢复 ♡':'已载入，但浏览器阻止存储，请导出备份');}catch(err){alert('读取失败：请选取从这个爱心存钱罐导出的 JSON 备份文件。');}finally{e.target.value=''}});
+
+  // Authenticated cloud sync. The public publishable key is safe to ship; no private keys here.
+  const cl=document.getElementById('cloud-login'),ca=document.getElementById('cloud-account'),
+    cs=document.getElementById('cloud-status');
+  const say=x=>{cs.textContent=x};
+  function useRow(r){
+    const w=Number(r&&r.to_wenxu),z=Number(r&&r.to_zhaozhao);
+    if(!valid(w)||!valid(z))throw Error('云端数据异常');
+    state.counts.toWenxu=w;state.counts.toZhaozhao=z;
+    save();draw();
+  }
+  async function mergeCloud(){
+    if(!sb||!cloudUser||connecting)return;
+    connecting=true;say('正在把本地心心合并到云端…');
+    try{
+      const {data,error}=await sb.rpc('heart_jars_initialize',{
+        p_to_wenxu:state.counts.toWenxu,p_to_zhaozhao:state.counts.toZhaozhao
+      });
+      if(error)throw error;
+      useRow(data);cloudOn=true;cl.hidden=true;ca.hidden=false;
+      document.getElementById('cloud-who').textContent='已登录：'+(cloudUser.email||'云端账号');
+      say('✓ 云端同步成功 · 两只罐子共用一份存档');
+    }catch(e){say('云端合并未成功，本地心心仍保留。'+(e.message||'请稍后再试'))}
+    finally{connecting=false}
+  }
+  async function addCloud(k,n){
+    if(!cloudOn||busy||connecting)return;
+    busy=true;say('正在往云端存心心…');
+    for(const b of document.querySelectorAll('[data-add],[data-custom]'))b.disabled=true;
+    try{
+      const {data,error}=await sb.rpc('heart_jars_add',{
+        p_recipient:k==='toWenxu'?'wenxu':'zhaozhao',p_amount:n
+      });
+      if(error)throw error;
+      useRow(data);fly(k);say('✓ 已存入云端 · 数字已同步');
+      notify((k==='toWenxu'?'照照送闻叙':'闻叙送照照')+' +'+fmt(n)+' 颗 ♡');
+    }catch(e){say('⚠ 这次存心心失败，数字尚未增加，请重试');notify('这次没有存入云端，请再试一次')}
+    finally{busy=false;for(const b of document.querySelectorAll('[data-add],[data-custom]'))b.disabled=false}
+  }
+  async function refreshCloud(){
+    if(!cloudOn||!sb||busy||connecting||!cloudUser)return;
+    busy=true;
+    try{
+      const {data,error}=await sb.from('heart_jars').select('to_wenxu,to_zhaozhao').eq('owner_id',cloudUser.id).single();
+      if(error)throw error;
+      useRow(data);say('✓ 已更新云端最新数字');
+    }catch(e){say('暂时无法刷新云端，本地存档仍在')}
+    finally{busy=false}
+  }
+  async function authenticate(register){
+    if(!sb){say('云端脚本加载失败，请刷新页面重试');return}
+    const email=document.getElementById('cloud-email').value.trim();
+    const password=document.getElementById('cloud-password').value;
+    if(email.indexOf('@')<1||password.length<6){say('请输入有效邮箱及至少六位密码');return}
+    say(register?'正在创建云端账号…':'正在登录…');
+    try{
+      const r=register
+        ?await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}})
+        :await sb.auth.signInWithPassword({email,password});
+      if(r.error)throw r.error;
+      if(r.data.session&&r.data.session.user){cloudUser=r.data.session.user;await mergeCloud()}
+      else say('请在邮箱确认注册，再回到本网页登录。你已有的本地心心不会丢。');
+    }catch(e){say('登录未成功：'+(e.message||'请稍后重试'))}
+  }
+  document.getElementById('cloud-signin').onclick=()=>void authenticate(false);
+  document.getElementById('cloud-signup').onclick=()=>void authenticate(true);
+  document.getElementById('cloud-refresh').onclick=()=>void refreshCloud();
+  document.getElementById('cloud-signout').onclick=async()=>{
+    if(!sb)return;
+    await sb.auth.signOut();cloudOn=false;cloudUser=null;cl.hidden=false;ca.hidden=true;
+    say('已退出云端，本地存档仍在。');
+  };
+  if(window.supabase&&window.supabase.createClient){
+    sb=window.supabase.createClient('https://hpaolinjtcuirkhetzge.supabase.co','sb_publishable_8nuEwapKlq1LtV-UhJHTQw_HCRVeiJW');
+    sb.auth.onAuthStateChange((event,session)=>{
+      if(event==='SIGNED_IN'&&session&&session.user){
+        cloudUser=session.user;setTimeout(()=>void mergeCloud(),0);
+      }else if(event==='SIGNED_OUT'){
+        cloudUser=null;cloudOn=false;cl.hidden=false;ca.hidden=true;say('未登录云端，本地存档正常');
+      }
+    });
+    sb.auth.getSession().then(({data})=>{
+      if(data&&data.session&&data.session.user){cloudUser=data.session.user;void mergeCloud()}
+      else say('未登录云端 · 本机存档可正常使用');
+    }).catch(()=>say('云端暂不可用，本机存档正常'));
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')void refreshCloud()});
+    setInterval(()=>{if(document.visibilityState==='visible')void refreshCloud()},25000);
+  }else say('云端组件暂时加载失败，本地存档正常。网络恢复后可刷新。');
+
 })();
 </script>
 </body>
