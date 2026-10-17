@@ -214,6 +214,32 @@
   .history-entry .note{font-size:12px;color:var(--ink);white-space:pre-wrap;margin-top:8px;overflow-wrap:anywhere}
   .history-empty{padding:15px;color:var(--muted);font-size:12px;text-align:center}
   @media(max-width:450px){.history-body{padding:0 9px 12px}.history-filter{padding:7px 9px}}
+
+  /* 随心心一起寄的小纸条，双栏手机布局下也不会挤破玻璃罐 */
+  .note-composer{margin:12px auto 0;max-width:310px;text-align:left}
+  .note-composer label{display:flex;justify-content:space-between;align-items:center;gap:6px;
+    margin:0 0 6px;font-size:12px;font-weight:700;color:var(--accent)}
+  .note-composer .note-length{font-size:10px;font-weight:400;color:var(--muted);white-space:nowrap}
+  .note-composer textarea,.history-edit textarea{
+    display:block;width:100%;resize:vertical;min-height:68px;max-height:165px;
+    border:1px solid var(--edge);border-radius:12px;
+    background:var(--panel2);color:var(--ink);font:inherit;font-size:12px;
+    line-height:1.55;padding:10px;outline-offset:2px}
+  .note-composer textarea:focus-visible,.history-edit textarea:focus-visible{
+    outline:2px solid var(--accent,#9c80d0);border-color:var(--accent,#9c80d0)}
+  .note-composer textarea::placeholder,.history-edit textarea::placeholder{color:var(--muted);opacity:.75}
+  .note-tip{font-size:10px;color:var(--muted);line-height:1.55;margin-top:5px}
+  .history-edit-open{margin-top:8px;display:inline-block;border:1px solid var(--edge);
+    border-radius:100px;background:var(--panel2);color:var(--ink);font-size:11px;padding:6px 10px}
+  .history-edit{margin-top:9px;--accent:#d686b4}
+  .history-entry.purple .history-edit{--accent:#9f85da}
+  .history-edit .edit-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+  .history-edit .edit-buttons button{border:1px solid var(--edge);border-radius:10px;padding:7px 10px;background:var(--panel2);color:var(--ink);font-size:12px}
+  .history-edit .edit-buttons .edit-save{background:var(--accent);border-color:transparent;color:white}
+  .history-edit .edit-status{display:block;color:var(--muted);font-size:11px;min-height:14px;margin-top:5px}
+  @media(max-width:650px){.note-composer{margin-top:11px}.note-composer label{font-size:11px}
+    .note-composer textarea{padding:8px 6px;font-size:12px;min-height:75px}
+    .note-tip{font-size:10px}}
   @media(prefers-reduced-motion:reduce){.fluid-current,.flow-channel-shimmer{animation:none!important}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -291,11 +317,21 @@
     <div class="connected-actions">
       <section class="chamber-controls pink-controls" aria-label="照照给闻叙存心心">
         <div class="layer" id="level-toWenxu"></div>
+        <div class="note-composer">
+          <label for="note-toWenxu">♡ 写给闻叙的小纸条<span class="note-length" id="note-length-toWenxu">0/180</span></label>
+          <textarea id="note-toWenxu" maxlength="180" rows="3" placeholder="想跟夫君说什么？（选填）" aria-label="写给闻叙的小纸条"></textarea>
+          <div class="note-tip">写好以后，点下方任意存心按钮，心心和小话会一起保存。</div>
+        </div>
         <div class="actions"><button class="add" type="button" data-to="toWenxu" data-add="1">♡ +1</button><button class="add secondary" type="button" data-to="toWenxu" data-add="9">+9</button><button class="add secondary" type="button" data-to="toWenxu" data-add="99">+99</button></div>
         <div class="custom"><input type="number" id="custom-toWenxu" min="1" max="9999999" step="1" inputmode="numeric" placeholder="想存几颗？" aria-label="照照送闻叙的自定义爱心数量"><button type="button" data-custom="toWenxu">存入 ♡</button></div>
       </section>
       <section class="chamber-controls purple-controls" aria-label="闻叙给照照存心心">
         <div class="layer" id="level-toZhaozhao"></div>
+        <div class="note-composer">
+          <label for="note-toZhaozhao">♡ 写给照照的小纸条<span class="note-length" id="note-length-toZhaozhao">0/180</span></label>
+          <textarea id="note-toZhaozhao" maxlength="180" rows="3" placeholder="想跟照照说什么？（选填）" aria-label="写给照照的小纸条"></textarea>
+          <div class="note-tip">写好以后，点下方任意存心按钮，心心和小话会一起保存。</div>
+        </div>
         <div class="actions"><button class="add" type="button" data-to="toZhaozhao" data-add="1">♡ +1</button><button class="add secondary" type="button" data-to="toZhaozhao" data-add="9">+9</button><button class="add secondary" type="button" data-to="toZhaozhao" data-add="99">+99</button></div>
         <div class="custom"><input type="number" id="custom-toZhaozhao" min="1" max="9999999" step="1" inputmode="numeric" placeholder="想存几颗？" aria-label="闻叙送照照的自定义爱心数量"><button type="button" data-custom="toZhaozhao">存入 ♡</button></div>
       </section>
@@ -436,11 +472,30 @@
       :'✓ 保存功能正常 · 已装入最初的 999 + 99 颗爱心';
   }
   function fly(k){const card=document.querySelector(`[data-jar="${k}"]`);for(let i=0;i<9;i++){const el=document.createElement('span');el.className='floatheart';el.textContent=i%3?'♥':'♡';el.style.setProperty('--x',(22+i*7+Math.random()*6)+'%');el.style.setProperty('--dx',(Math.random()*100-50)+'px');el.style.animationDelay=(i*.04)+'s';card.appendChild(el);setTimeout(()=>el.remove(),2100)}}
-  function add(k,n){if(!Number.isSafeInteger(n)||n<=0||n>9999999){notify('请输入 1 至 9,999,999 的整数颗数');return;}if(!valid(state.counts[k]+n)){notify('这个罐子已经装得太满啦，请先备份');return}if(cloudOn){void addCloud(k,n);return;}state.counts[k]+=n;const persisted=save();draw();fly(k);notify((k==='toWenxu'?'照照送闻叙':'闻叙送照照')+' +'+fmt(n)+' 颗 ♡ '+(persisted?'已保存！':'尚未永久保存，请先导出备份'))}
+  function add(k,n){
+    if(!Number.isSafeInteger(n)||n<=0||n>9999999){notify('请输入 1 至 9,999,999 的整数颗数');return}
+    if(!valid(state.counts[k]+n)){notify('这个罐子已经装得太满啦，请先备份');return}
+    const note=document.getElementById('note-'+k).value.trim();
+    if(note.length>180){notify('小纸条最多写180字');return}
+    if(cloudOn){void addCloud(k,n,note);return}
+    // 本地模式仍然允许不带留言的心心，带留言的存入必须先登录，避免文字丢失。
+    if(note){notify('小纸条需要先登录云端才能一起保存，心心还没增加哦');return}
+    state.counts[k]+=n;
+    const persisted=save();draw();fly(k);
+    document.getElementById('custom-'+k).value='';
+    notify((k==='toWenxu'?'照照送闻叙':'闻叙送照照')+' +'+fmt(n)+' 颗 ♡ '+(persisted?'已保存！':'尚未永久保存，请先导出备份'));
+  }
   load();draw();
   for(const b of document.querySelectorAll('[data-add]'))b.addEventListener('click',()=>add(b.dataset.to,Number(b.dataset.add)));
-  for(const b of document.querySelectorAll('[data-custom]'))b.addEventListener('click',()=>{const field=document.getElementById('custom-'+b.dataset.custom);add(b.dataset.custom,Number(field.value));field.value=''});
-  for(const k of ['toWenxu','toZhaozhao'])document.getElementById('custom-'+k).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add(k,Number(e.target.value));e.target.value=''}});
+  for(const b of document.querySelectorAll('[data-custom]'))b.addEventListener('click',()=>{const field=document.getElementById('custom-'+b.dataset.custom);add(b.dataset.custom,Number(field.value));});
+  for(const k of ['toWenxu','toZhaozhao']){
+    document.getElementById('custom-'+k).addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();add(k,Number(e.target.value))}
+    });
+    const note=document.getElementById('note-'+k);
+    const counter=document.getElementById('note-length-'+k);
+    note.addEventListener('input',()=>{counter.textContent=note.value.length+'/180'});
+  }
   const light=document.getElementById('lightToggle');light.addEventListener('click',()=>{const on=document.body.classList.toggle('night');light.textContent=on?'☀　开灯':'☾　关灯';light.setAttribute('aria-pressed',String(on));});
   document.getElementById('export').addEventListener('click',()=>{const contents=JSON.stringify({...state,exportedAt:new Date().toISOString(),title:'照照和闻叙的爱心存钱罐'},null,2);const blob=new Blob([contents],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='照照闻叙_爱心备份_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),8000);notify('已准备下载爱心备份 ♡')});
   document.getElementById('import').addEventListener('click',()=>document.getElementById('file').click());
@@ -515,6 +570,37 @@
   const historyClock=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
   let heartHistory=[],historyFilter='all',historyBusy=false;
   function historyMsg(t){const e=document.createElement('div');e.className='history-empty';e.textContent=t;historyList.replaceChildren(e)}
+
+  // 已有的网页点击记录可以补写/修改自己的纸条，数量与日期保持不变。
+  function historyNoteEditor(item,event){
+    const edit=document.createElement('div');edit.className='history-edit';
+    const field=document.createElement('textarea');field.maxLength=180;field.rows=3;
+    field.setAttribute('aria-label','给这笔心心补写小纸条');
+    field.placeholder='写几句想对闻叙说的话…（最多180字）';
+    field.value=event.note==='从网页亲手存入的小心心'?'':(event.note||'');
+    const actions=document.createElement('div');actions.className='edit-buttons';
+    const save=document.createElement('button');save.className='edit-save';save.type='button';save.textContent='保存纸条';
+    const cancel=document.createElement('button');cancel.type='button';cancel.textContent='取消';
+    const status=document.createElement('span');status.className='edit-status';
+    actions.append(save,cancel);edit.append(field,actions,status);
+    cancel.onclick=()=>edit.remove();
+    save.onclick=async()=>{
+      if(!cloudUser||!cloudOn){status.textContent='请先登录云端';return;}
+      const note=field.value.trim();if(note.length>180){status.textContent='小纸条最多180字';return}
+      save.disabled=true;cancel.disabled=true;status.textContent='正在保存小纸条…';
+      try{
+        const {data,error}=await sb.rpc('heart_event_update_note',{p_event_id:event.id,p_note:note});
+        if(error)throw error;
+        event.note=data.note;
+        status.textContent='♡ 小纸条已经保存';
+        // 保留现有历史滚动位置。
+        const scroll=historyList.scrollTop;showHistory();historyList.scrollTop=scroll;
+      }catch(e){status.textContent='暂时没有存好，文字还在这里，可以重试';}
+      finally{save.disabled=false;cancel.disabled=false}
+    };
+    item.append(edit);field.focus();
+  }
+
   function showHistory(){
     historyList.replaceChildren();
     const rows=heartHistory.filter(e=>historyFilter==='all'||e.recipient===historyFilter);
@@ -531,6 +617,17 @@
       const total=document.createElement('span');total.textContent='存后 '+fmt(Number(e.balance_after))+' 颗';
       meta.append(time,source,total);item.append(head,meta);
       if(e.note){const note=document.createElement('div');note.className='note';note.textContent=e.note;item.appendChild(note)}
+      if(e.origin==='web'){
+        const editBtn=document.createElement('button');editBtn.type='button';
+        editBtn.className='history-edit-open';editBtn.textContent='♡ 补写 / 修改小纸条';
+        editBtn.setAttribute('aria-label','补写或修改这笔心心的小纸条');
+        editBtn.onclick=()=>{
+          const active=item.querySelector('.history-edit');
+          if(active){active.remove();return;}
+          historyNoteEditor(item,e);
+        };
+        item.appendChild(editBtn);
+      }
       historyList.appendChild(item);
     }
   }
@@ -571,19 +668,26 @@
     }catch(e){say('云端合并未成功，本地心心仍保留。'+(e.message||'请稍后再试'))}
     finally{connecting=false}
   }
-  async function addCloud(k,n){
+  async function addCloud(k,n,note){
     if(!cloudOn||busy||connecting)return;
-    busy=true;say('正在往云端存心心…');
+    busy=true;say(note?'正在把心心和小纸条一起存入云端…':'正在往云端存心心…');
     for(const b of document.querySelectorAll('[data-add],[data-custom]'))b.disabled=true;
+    const field=document.getElementById('note-'+k),amountField=document.getElementById('custom-'+k);
     try{
-      const {data,error}=await sb.rpc('heart_jars_add',{
-        p_recipient:k==='toWenxu'?'wenxu':'zhaozhao',p_amount:n
+      const {data,error}=await sb.rpc('heart_jars_add_note',{
+        p_recipient:k==='toWenxu'?'wenxu':'zhaozhao',p_amount:n,p_note:note
       });
       if(error)throw error;
-      useRow(data);fly(k);say('✓ 已存入云端 · 数字已同步');
-      notify((k==='toWenxu'?'照照送闻叙':'闻叙送照照')+' +'+fmt(n)+' 颗 ♡');
-    }catch(e){say('⚠ 这次存心心失败，数字尚未增加，请重试');notify('这次没有存入云端，请再试一次')}
-    finally{busy=false;for(const b of document.querySelectorAll('[data-add],[data-custom]'))b.disabled=false}
+      useRow(data);fly(k);
+      if(field.value.trim()===note){field.value='';document.getElementById('note-length-'+k).textContent='0/180'}
+      if(amountField.value!==''&&Number(amountField.value)===n)amountField.value='';
+      say(note?'✓ 心心和小纸条都存好了':'✓ 已存入云端 · 数字已同步');
+      notify((k==='toWenxu'?'照照送闻叙':'闻叙送照照')+' +'+fmt(n)+' 颗 ♡'+(note?' 小纸条也寄出啦！':''));
+      if(historyPanel.open)void fetchHistory();
+    }catch(e){
+      say('⚠ 这次存心心未确认成功，请先刷新核对，别急着重试');
+      notify('存入未确认成功，心心和小纸条都保留在输入框中');
+    }finally{busy=false;for(const b of document.querySelectorAll('[data-add],[data-custom]'))b.disabled=false}
   }
   async function refreshCloud(){
     if(!cloudOn||!sb||busy||connecting||!cloudUser)return;
