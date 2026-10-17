@@ -194,6 +194,26 @@
     .glass-divider{bottom:23px}
     .glass-text{bottom:22px}
   }
+
+  .history-box{margin-top:15px;border:1px solid var(--edge);background:var(--panel2);border-radius:18px;overflow:hidden}
+  .history-box[hidden]{display:none!important}
+  .history-box summary{padding:16px;cursor:pointer;font-weight:700;list-style:none}
+  .history-box summary::-webkit-details-marker{display:none}
+  .history-body{padding:0 13px 15px}
+  .history-body p{font-size:12px;color:var(--muted);line-height:1.8}
+  .history-filters{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0}
+  .history-filter{border:1px solid var(--edge);border-radius:16px;background:var(--panel);color:var(--ink);padding:8px 11px;font-size:12px}
+  .history-filter[aria-pressed="true"]{background:#e2c2ea;color:#4b386a}
+  .history-list{display:grid;gap:9px;max-height:470px;overflow:auto}
+  .history-entry{border:1px solid var(--edge);background:var(--panel);border-left:4px solid #d686b4;border-radius:12px;padding:11px;text-align:left}
+  .history-entry.purple{border-left-color:#9f85da}
+  .history-entry .head{display:flex;justify-content:space-between;gap:7px;font-size:13px;font-weight:700}
+  .history-entry .amount{font-size:17px;color:#d686b4;white-space:nowrap}
+  .history-entry.purple .amount{color:#a58ddd}
+  .history-entry .meta{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:6px}
+  .history-entry .note{font-size:12px;color:var(--ink);white-space:pre-wrap;margin-top:8px;overflow-wrap:anywhere}
+  .history-empty{padding:15px;color:var(--muted);font-size:12px;text-align:center}
+  @media(max-width:450px){.history-body{padding:0 9px 12px}.history-filter{padding:7px 9px}}
   @media(prefers-reduced-motion:reduce){.fluid-current,.flow-channel-shimmer{animation:none!important}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -306,6 +326,20 @@
       <div class="gift-provenance" id="gift-provenance">从聊天里存入的云端礼物 · 网页播放心心飞舞</div>
       <button class="gift-replay" id="gift-replay" type="button">♡ 再看一次小心心飞起来</button>
     </div>
+
+    <details class="history-box" id="history-panel" hidden>
+      <summary>♡ 爱心存入历史 <span id="history-count" style="font-size:12px;color:var(--muted);font-weight:400">点击翻阅</span></summary>
+      <div class="history-body">
+        <p>每笔显示北京时间、颗数、来源与留言。建立存入记录功能以前的部分增加，以及最初存放的心心，没有逐笔记录。</p>
+        <div class="history-filters">
+          <button type="button" class="history-filter" data-hfilter="all" aria-pressed="true">全部</button>
+          <button type="button" class="history-filter" data-hfilter="wenxu" aria-pressed="false">粉色</button>
+          <button type="button" class="history-filter" data-hfilter="zhaozhao" aria-pressed="false">紫色</button>
+          <button type="button" class="history-filter" id="history-reload">↻ 更新</button>
+        </div>
+        <div id="history-list" class="history-list" aria-live="polite"></div>
+      </div>
+    </details>
   </section>
   <section class="footer-panel">
     <div><strong>♡ 把我们的心心好好保存</strong><p class="foot-desc">正常浏览器里的固定网址支持自动保存。聊天内预览可能禁用按钮；手机直接打开本地 HTML 也可能阻止持久存储。请先检查页面下方的保存状态，偶尔导出备份。</p></div>
@@ -474,6 +508,52 @@
     if(cloudUser&&latestRemoteGift)giftAnimation(latestRemoteGift);
   });
 
+
+  const historyPanel=document.getElementById('history-panel');
+  const historyList=document.getElementById('history-list');
+  const historyCount=document.getElementById('history-count');
+  const historyClock=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+  let heartHistory=[],historyFilter='all',historyBusy=false;
+  function historyMsg(t){const e=document.createElement('div');e.className='history-empty';e.textContent=t;historyList.replaceChildren(e)}
+  function showHistory(){
+    historyList.replaceChildren();
+    const rows=heartHistory.filter(e=>historyFilter==='all'||e.recipient===historyFilter);
+    if(!rows.length){historyMsg('暂时没有这类逐笔记录');return}
+    for(const e of rows){
+      const pink=e.recipient==='wenxu';
+      const item=document.createElement('article');item.className='history-entry'+(pink?'':' purple');
+      const head=document.createElement('div');head.className='head';
+      const label=document.createElement('span');label.textContent=pink?'照照送闻叙':'闻叙送照照';
+      const val=document.createElement('strong');val.className='amount';val.textContent='+'+fmt(Number(e.amount))+' ♡';head.append(label,val);
+      const meta=document.createElement('div');meta.className='meta';
+      const time=document.createElement('span');time.textContent=historyClock.format(new Date(e.created_at));
+      const source=document.createElement('span');source.textContent=e.origin==='web'?'网页点击':'聊天远程存入';
+      const total=document.createElement('span');total.textContent='存后 '+fmt(Number(e.balance_after))+' 颗';
+      meta.append(time,source,total);item.append(head,meta);
+      if(e.note){const note=document.createElement('div');note.className='note';note.textContent=e.note;item.appendChild(note)}
+      historyList.appendChild(item);
+    }
+  }
+  async function fetchHistory(){
+    if(!sb||!cloudUser||!cloudOn||historyBusy)return;
+    historyBusy=true;const userId=cloudUser.id;historyMsg('正在读取我们的心心…');
+    try{
+      const {data,error}=await sb.from('heart_events')
+        .select('id,recipient,origin,amount,balance_after,note,created_at')
+        .eq('owner_id',userId).order('id',{ascending:false}).limit(100);
+      if(error)throw error;
+      if(!cloudUser||cloudUser.id!==userId)return;
+      heartHistory=data||[];historyCount.textContent='已记录 '+heartHistory.length+' 笔'+(heartHistory.length===100?'（最近100笔）':'');showHistory();
+    }catch(e){historyMsg('读取失败，稍后点更新重试')}
+    finally{historyBusy=false}
+  }
+  historyPanel.addEventListener('toggle',()=>{if(historyPanel.open&&cloudOn)void fetchHistory()});
+  document.getElementById('history-reload').onclick=()=>void fetchHistory();
+  for(const btn of document.querySelectorAll('[data-hfilter]'))btn.onclick=()=>{
+    historyFilter=btn.dataset.hfilter;
+    for(const b of document.querySelectorAll('[data-hfilter]'))b.setAttribute('aria-pressed',String(b.dataset.hfilter===historyFilter));
+    showHistory();
+  };
   async function mergeCloud(){
     if(!sb||!cloudUser||connecting)return;
     connecting=true;say('正在把本地心心合并到云端…');
@@ -485,7 +565,9 @@
       useRow(data);cloudOn=true;cl.hidden=true;ca.hidden=false;
       document.getElementById('cloud-who').textContent='已登录：'+(cloudUser.email||'云端账号');
       say('✓ 云端同步成功 · 两只罐子共用一份存档');
+      historyPanel.hidden=false;
       void checkRemoteGift();
+      if(historyPanel.open)void fetchHistory();
     }catch(e){say('云端合并未成功，本地心心仍保留。'+(e.message||'请稍后再试'))}
     finally{connecting=false}
   }
@@ -511,6 +593,7 @@
       if(error)throw error;
       useRow(data);say('✓ 已更新云端最新数字');
       void checkRemoteGift();
+      if(historyPanel.open)void fetchHistory();
     }catch(e){say('暂时无法刷新云端，本地存档仍在')}
     finally{busy=false}
   }
@@ -534,7 +617,7 @@
   document.getElementById('cloud-refresh').onclick=()=>void refreshCloud();
   document.getElementById('cloud-signout').onclick=async()=>{
     if(!sb)return;
-    await sb.auth.signOut();cloudOn=false;cloudUser=null;cl.hidden=false;ca.hidden=true;latestRemoteGift=null;giftPanel.hidden=true;
+    await sb.auth.signOut();cloudOn=false;cloudUser=null;cl.hidden=false;ca.hidden=true;latestRemoteGift=null;giftPanel.hidden=true;historyPanel.hidden=true;heartHistory=[];
     say('已退出云端，本地存档仍在。');
   };
   if(window.supabase&&window.supabase.createClient){
@@ -543,7 +626,7 @@
       if(event==='SIGNED_IN'&&session&&session.user){
         cloudUser=session.user;setTimeout(()=>void mergeCloud(),0);
       }else if(event==='SIGNED_OUT'){
-        cloudUser=null;cloudOn=false;cl.hidden=false;ca.hidden=true;latestRemoteGift=null;giftPanel.hidden=true;say('未登录云端，本地存档正常');
+        cloudUser=null;cloudOn=false;cl.hidden=false;ca.hidden=true;latestRemoteGift=null;giftPanel.hidden=true;historyPanel.hidden=true;heartHistory=[];say('未登录云端，本地存档正常');
       }
     });
     sb.auth.getSession().then(({data})=>{
